@@ -13,6 +13,8 @@ import {
 } from '@expo-google-fonts/rubik'
 
 import { Loading } from '@/components/loading'
+import { QueryClientProvider } from '@tanstack/react-query'
+import { queryClient } from '@/lib/query-client'
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
@@ -28,13 +30,15 @@ export default function RootLayout() {
 
   return (
     <>
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          contentStyle: { backgroundColor: colors.gray[100] },
-        }}
-      />
-      <StatusBar style="dark" backgroundColor="transparent" translucent />
+      <QueryClientProvider client={queryClient}>
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor: colors.gray[100] },
+          }}
+        />
+        <StatusBar style="dark" backgroundColor="transparent" translucent />
+      </QueryClientProvider>
     </>
   )
 }
