@@ -34,7 +34,7 @@ export default function RootLayout() {
           contentStyle: { backgroundColor: colors.gray[100] },
         }}
       />
-      <StatusBar style="dark" />
+      <StatusBar style="dark" backgroundColor="transparent" translucent />
     </>
   )
 }
