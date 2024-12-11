@@ -1,6 +1,5 @@
-import { FlatList, View } from 'react-native'
+import { FlatList } from 'react-native'
 import { Category } from './category'
-import type { FetchCategoriesResponse } from '@/http/fetch-categories'
 
 interface CategoriesProps {
   id: string

@@ -9,11 +9,10 @@ export interface FetchCategoriesResponse {
 export async function fetchCategories() {
   try {
     const response = await api.get<FetchCategoriesResponse[]>('/categories')
-    const data = await response.data
+    const data = response.data
     return data
   } catch (error) {
     console.log(error)
     Alert.alert('Categorias', 'Não foi possível carrega as categorias')
-    return []
   }
 }
