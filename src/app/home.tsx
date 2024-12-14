@@ -22,19 +22,17 @@ const currentLocation = {
 
 export default function Home() {
   const [category, setCategory] = useState('')
-  // const [location, setLocation] = useState<Location.LocationObject | null>(null)
 
-  /*async function getCurrentLocation() {
+  async function getCurrentLocation() {
     try {
       const { granted } = await Location.requestForegroundPermissionsAsync()
       if (granted) {
         const location = await Location.getCurrentPositionAsync()
-        setLocation(location)
       }
     } catch (error) {
       console.error(error)
     }
-  }*/
+  }
 
   const { data: categories, isLoading: isLoadingCategories } = useQuery({
     queryKey: ['categories'],
@@ -49,10 +47,10 @@ export default function Home() {
     staleTime: 60 * 3,
   })
 
-  /*useEffect(() => {
-    getCurrentLocation()
+  useEffect(() => {
+    fetchCategories()
   }, [])
-  */
+
   useEffect(() => {
     if (categories && categories?.length > 0) {
       setCategory(categories[0].id)
@@ -101,13 +99,13 @@ export default function Home() {
               key={item.id}
               identifier={item.id}
               coordinate={{
-                latitude: item.latitude,
-                longitude: item.longitude,
+                latitude: item.latitude || currentLocation.latitude,
+                longitude: item.longitude || currentLocation.longitude,
               }}
               image={require('@/assets/pin.png')}
             >
               <Callout onPress={() => router.navigate(`/market/${item.id}`)}>
-                <View className="p-8">
+                <View>
                   <Text className="font-medium text-gray-600 text-sm">
                     {item.name}
                   </Text>

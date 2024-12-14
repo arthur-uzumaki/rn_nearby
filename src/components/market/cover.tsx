@@ -10,10 +10,11 @@ interface CoverProps {
 export function Cover({ uri }: CoverProps) {
   return (
     <ImageBackground
-      className="-mt-8 h-[232px] w-full bg-gray-200"
+      className="-mb-8 h-[232px] w-full bg-gray-200"
       source={{ uri }}
+      alt="cover"
     >
-      <View className="p-6 mt-14">
+      <View className="p-6 pt-14">
         <Button className="h-10 w-10" onPress={() => router.back()}>
           <Button.Icon icon={IconArrowLeft} />
         </Button>

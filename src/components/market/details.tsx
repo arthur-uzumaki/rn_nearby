@@ -2,7 +2,7 @@ import { Text, View } from 'react-native'
 import { Info } from './info'
 import { IconPhone, IconMapPin, IconTicket } from '@tabler/icons-react-native'
 
-interface DetailsProps {
+export interface DetailsProps {
   name: string
   description: string
   address: string

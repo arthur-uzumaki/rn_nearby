@@ -1,7 +1,7 @@
 import { FlatList } from 'react-native'
 import { Category } from './category'
 
-interface CategoriesProps {
+export interface CategoriesProps {
   id: string
   name: string
 }
