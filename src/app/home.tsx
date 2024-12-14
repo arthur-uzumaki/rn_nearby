@@ -48,10 +48,6 @@ export default function Home() {
   })
 
   useEffect(() => {
-    fetchCategories()
-  }, [])
-
-  useEffect(() => {
     if (categories && categories?.length > 0) {
       setCategory(categories[0].id)
     }
