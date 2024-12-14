@@ -104,7 +104,7 @@ export default function Market() {
   }
 
   return (
-    <View style={{ flex: 1 }}>
+    <View className="flex-1">
       <StatusBar barStyle="light-content" hidden={isVisibleCameraModal} />
 
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -113,7 +113,7 @@ export default function Market() {
         {coupon && <Coupon code={coupon} />}
       </ScrollView>
 
-      <View style={{ padding: 32 }}>
+      <View className="p-8">
         <Button onPress={handleOpenCamera}>
           <Button.Icon icon={IconScan} />
           <Button.Title>Ler QR Code</Button.Title>
@@ -132,7 +132,7 @@ export default function Market() {
           }}
         />
 
-        <View style={{ position: 'absolute', bottom: 32, left: 32, right: 32 }}>
+        <View className="absolute right-8 bottom-8 left-8">
           <Button
             onPress={() => setIsVisibleCameraModal(false)}
             isLoading={couponIsFetching}
