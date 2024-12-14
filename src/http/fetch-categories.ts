@@ -12,7 +12,6 @@ export async function fetchCategories() {
     const data = response.data
     return data
   } catch (error) {
-    console.log(error)
     Alert.alert('Categorias', 'Não foi possível carrega as categorias')
   }
 }

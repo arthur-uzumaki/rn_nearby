@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react'
-import { View } from 'react-native'
+import { Text, View } from 'react-native'
+
+import MapView, { Marker, Callout } from 'react-native-maps'
+import * as Location from 'expo-location'
+
 import { useQuery } from '@tanstack/react-query'
 
 import { Categories } from '@/components/categories'
@@ -9,8 +13,26 @@ import { fetchMarkets } from '@/http/fetch-markets'
 import { fetchCategories } from '@/http/fetch-categories'
 import { Places } from '@/components/places'
 
+import { router } from 'expo-router'
+
+const currentLocation = {
+  latitude: -23.561187293883442,
+  longitude: -46.656451388116494,
+}
+
 export default function Home() {
   const [category, setCategory] = useState('')
+
+  async function getCurrentLocation() {
+    try {
+      const { granted } = await Location.requestForegroundPermissionsAsync()
+      if (granted) {
+        const location = await Location.getCurrentPositionAsync()
+      }
+    } catch (error) {
+      console.error(error)
+    }
+  }
 
   const { data: categories, isLoading: isLoadingCategories } = useQuery({
     queryKey: ['categories'],
@@ -24,6 +46,10 @@ export default function Home() {
     enabled: !!category,
     staleTime: 60 * 3,
   })
+
+  useEffect(() => {
+    fetchCategories()
+  }, [])
 
   useEffect(() => {
     if (categories && categories?.length > 0) {
@@ -40,7 +66,7 @@ export default function Home() {
   }
 
   return (
-    <View className="flex-1 pt-10">
+    <View className="flex-1 ">
       {categories.length > 0 && (
         <Categories
           data={categories}
@@ -48,6 +74,51 @@ export default function Home() {
           onSelect={setCategory}
         />
       )}
+
+      <MapView
+        style={{ flex: 1 }}
+        initialRegion={{
+          latitude: currentLocation.latitude,
+          longitude: currentLocation.longitude,
+          latitudeDelta: 0.01,
+          longitudeDelta: 0.01,
+        }}
+      >
+        <Marker
+          identifier="current"
+          coordinate={{
+            latitude: currentLocation.latitude,
+            longitude: currentLocation.longitude,
+          }}
+          image={require('@/assets/location.png')}
+        />
+
+        {markets.map(item => {
+          return (
+            <Marker
+              key={item.id}
+              identifier={item.id}
+              coordinate={{
+                latitude: item.latitude || currentLocation.latitude,
+                longitude: item.longitude || currentLocation.longitude,
+              }}
+              image={require('@/assets/pin.png')}
+            >
+              <Callout onPress={() => router.navigate(`/market/${item.id}`)}>
+                <View>
+                  <Text className="font-medium text-gray-600 text-sm">
+                    {item.name}
+                  </Text>
+
+                  <Text className="font-regular text-gray-600 text-xs">
+                    {item.address}
+                  </Text>
+                </View>
+              </Callout>
+            </Marker>
+          )
+        })}
+      </MapView>
 
       {markets.length > 0 && <Places data={markets} />}
     </View>

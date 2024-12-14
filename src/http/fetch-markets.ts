@@ -25,7 +25,6 @@ export async function fetchMarkets(marketId: string) {
     )
     return data
   } catch (error) {
-    console.log(error)
     Alert.alert('Locais', 'Não foi possível carrega os locais')
   }
 }

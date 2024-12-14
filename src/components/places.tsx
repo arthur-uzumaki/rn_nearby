@@ -4,6 +4,7 @@ import { Text, useWindowDimensions } from 'react-native'
 import { type PlaceProps, Place } from './place'
 import BottomSheet, { BottomSheetFlatList } from '@gorhom/bottom-sheet'
 import { colors } from '@/styles/colors'
+import { router } from 'expo-router'
 
 interface PlacesProps {
   data: PlaceProps[]
@@ -34,7 +35,12 @@ export function Places({ data }: PlacesProps) {
         data={data}
         keyExtractor={item => item.id}
         contentContainerClassName={'gap-2 p-6 pb-[100px]'}
-        renderItem={({ item }) => <Place data={item} />}
+        renderItem={({ item }) => (
+          <Place
+            data={item}
+            onPress={() => router.navigate(`/market/${item.id}`)}
+          />
+        )}
         ListHeaderComponent={() => (
           <Text className="mb-4 font-regular text-base text-gray-600">
             Explore locais perto de você
