@@ -1,115 +1,142 @@
-import { useRef, useState } from 'react'
-import { View, Modal, Alert } from 'react-native'
-import { StatusBar } from 'expo-status-bar'
-import { Redirect, useLocalSearchParams } from 'expo-router'
+import { useEffect, useState, useRef } from 'react'
+import { View, Alert, Modal, StatusBar, ScrollView } from 'react-native'
+import { router, useLocalSearchParams, Redirect } from 'expo-router'
 import { useCameraPermissions, CameraView } from 'expo-camera'
-
 import { IconScan } from '@tabler/icons-react-native'
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { fetchMarketDetails } from '@/http/fetch-market-details'
-
+import { Button } from '@/components/button'
 import { Loading } from '@/components/loading'
 import { Cover } from '@/components/market/cover'
-import { Details } from '@/components/market/details'
 import { Coupon } from '@/components/market/coupon'
-import { Button } from '@/components/button'
-import { ScrollView } from 'react-native'
-import { fetchCoupon } from '@/http/fetch-coupon'
+import { Details, type DetailsProps } from '@/components/market/details'
+
+import { api } from '@/lib/axios'
+
+type DataProps = DetailsProps & {
+  cover: string
+}
 
 export default function Market() {
-  const [isVisibleCameraModal, setIsVisibleCameraModal] = useState(false)
+  const [data, setData] = useState<DataProps>()
   const [coupon, setCoupon] = useState<string | null>(null)
-  const queClient = useQueryClient()
+  const [isLoading, setIsLoading] = useState(true)
+  const [couponIsFetching, setCouponIsFetching] = useState(false)
+  const [isVisibleCameraModal, setIsVisibleCameraModal] = useState(false)
 
   const [_, requestPermission] = useCameraPermissions()
-
   const params = useLocalSearchParams<{ id: string }>()
 
+  const qrLock = useRef(false)
   console.log(params.id)
 
-  const qrLock = useRef(false)
-
-  const { data: market, isLoading } = useQuery({
-    queryKey: ['market'],
-    queryFn: () => fetchMarketDetails(params.id),
-    staleTime: 60 * 3,
-  })
+  async function fetchMarket() {
+    try {
+      const { data } = await api.get(`/markets/${params.id}`)
+      setData(data)
+      setIsLoading(false)
+    } catch (error) {
+      console.log(error)
+      Alert.alert('Erro', 'Não foi possível carregar os dados', [
+        {
+          text: 'OK',
+          onPress: () => router.back(),
+        },
+      ])
+    }
+  }
 
   async function handleOpenCamera() {
     try {
       const { granted } = await requestPermission()
+
       if (!granted) {
-        qrLock.current = false
         return Alert.alert('Câmera', 'Você precisa habilitar o uso da câmera')
       }
+
+      qrLock.current = false
       setIsVisibleCameraModal(true)
     } catch (error) {
       console.log(error)
-      Alert.alert('Câmera', 'Não foi possível utilizar a câmera ')
+      Alert.alert('Câmera', 'Não foi possível utilizar a câmera')
     }
   }
 
-  const { mutateAsync: applyCoupon } = useMutation({
-    mutationFn: (id: string) => fetchCoupon(id),
-    onSuccess: data => {
-      if (data.coupon) {
-        setCoupon(data.coupon)
-      }
-      queClient.invalidateQueries({ queryKey: ['market'] })
-    },
-  })
+  async function getCoupon(id: string) {
+    try {
+      setCouponIsFetching(true)
 
-  function handleUserCoupon(id: string) {
+      const { data } = await api.patch(`/coupons/${id}`)
+
+      Alert.alert('Cupom', data.coupon)
+      setCoupon(data.coupon)
+    } catch (error) {
+      console.log(error)
+      Alert.alert('Erro', 'Não foi possível utilizar o cupom')
+    } finally {
+      setCouponIsFetching(false)
+    }
+  }
+
+  function handleUseCoupon(id: string) {
     setIsVisibleCameraModal(false)
+
     Alert.alert(
-      'Coupon',
-      'Não é possível reutilizar resgatado. Deja realmente o cupom?',
+      'Cupom',
+      'Não é possível reutilizar um cupom resgatado. Deseja realmente resgatar o cupom?',
       [
         { style: 'cancel', text: 'Não' },
-        { text: 'Sim', onPress: () => applyCoupon(id) },
+        { text: 'Sim', onPress: () => getCoupon(id) },
       ]
     )
   }
 
-  if (isLoading || !market) {
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+  useEffect(() => {
+    fetchMarket()
+  }, [params.id, coupon])
+
+  if (isLoading) {
     return <Loading />
   }
 
-  if (!market) {
-    return <Redirect href={'/home'} />
+  if (!data) {
+    return <Redirect href="/home" />
   }
 
   return (
-    <View className="flex-1 ">
-      <StatusBar style="light" backgroundColor="transparent" />
+    <View style={{ flex: 1 }}>
+      <StatusBar barStyle="light-content" hidden={isVisibleCameraModal} />
+
       <ScrollView showsVerticalScrollIndicator={false}>
-        <Cover uri={market.cover} />
-        <Details data={market} />
+        <Cover uri={data.cover} />
+        <Details data={data} />
         {coupon && <Coupon code={coupon} />}
       </ScrollView>
 
-      <View className="p-8">
+      <View style={{ padding: 32 }}>
         <Button onPress={handleOpenCamera}>
           <Button.Icon icon={IconScan} />
           <Button.Title>Ler QR Code</Button.Title>
         </Button>
       </View>
 
-      <Modal className="flex-1" visible={isVisibleCameraModal}>
+      <Modal style={{ flex: 1 }} visible={isVisibleCameraModal}>
         <CameraView
           style={{ flex: 1 }}
           facing="back"
           onBarcodeScanned={({ data }) => {
             if (data && !qrLock.current) {
               qrLock.current = true
-              setTimeout(() => handleUserCoupon(data), 500)
+              setTimeout(() => handleUseCoupon(data), 500)
             }
           }}
         />
 
-        <View className="absolute right-8 bottom-8 left-8">
-          <Button onPress={() => setIsVisibleCameraModal(false)}>
+        <View style={{ position: 'absolute', bottom: 32, left: 32, right: 32 }}>
+          <Button
+            onPress={() => setIsVisibleCameraModal(false)}
+            isLoading={couponIsFetching}
+          >
             <Button.Title>Voltar</Button.Title>
           </Button>
         </View>
